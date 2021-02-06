@@ -4,10 +4,10 @@
 #include "MPU9250.h"
 #include <EEPROM.h>
 
-#define INTERVAL 200 // ms
+#define INTERVAL 100 // ms
 #define LOG_SIZE 12 //float(4 bytes) x 3 fields -10
 #define IND_PIN 13 // LED or indicator PIN
-#define WAIT_UNTIL_START_RECORDING 5000 // wait after LED is ON
+#define WAIT_UNTIL_START_RECORDING 3000 // wait after LED is ON
 
 struct LoggerObject { // 10 fields of float
   float acc[3]; // X,Y,Z

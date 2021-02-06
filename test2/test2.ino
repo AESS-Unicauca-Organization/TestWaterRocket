@@ -23,7 +23,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const int chipSelect = 4;
+const int chipSelect = 9;
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -31,7 +31,7 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-pinMode(4, OUTPUT);
+pinMode(9, OUTPUT);
 
   Serial.print("Initializing SD card...");
 

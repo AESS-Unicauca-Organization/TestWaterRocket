@@ -32,7 +32,7 @@ void setup() {
   Wire.begin();
   delay(2000);
 
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(9, OUTPUT);
 //  
 //  if (!bmp.begin()) {
 //    //Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
@@ -62,9 +62,9 @@ void setup() {
     return;
   }
   //Serial.println(F("Iniciado correctamente"));
-  
-  digitalWrite(IND_PIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(WAIT_UNTIL_START_RECORDING);
+//  
+//  digitalWrite(IND_PIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+//  delay(WAIT_UNTIL_START_RECORDING);
 }
 
 void loop() {
@@ -105,7 +105,7 @@ void loop() {
                   logFile.close();
             } else {
               //Serial.println("Error al abrir el archivo");
-              digitalWrite(IND_PIN, HIGH);
+//              digitalWrite(IND_PIN, HIGH);
             }
             
             prev_ms = millis();
