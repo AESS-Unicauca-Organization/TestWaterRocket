@@ -37,7 +37,7 @@ void loop() {
 
   Serial.print("Gyro: ");
   Serial.print("\t");
-  Serial.print(data.gyro[0]);
+  Serial.print("["+(String)data.acc[0]+","+(String)data.acc[1]+","+(String)data.acc[2]+","+(String)data.gyro[0]+","+(String)data.gyro[1]+","+(String)data.gyro[2]+","+(String)data.mag[0]+","+(String)data.mag[1]+","+(String)data.mag[2]+","+(String)data.pressure+"]");
   Serial.println();
 
   eeAddress += sizeof(data);
