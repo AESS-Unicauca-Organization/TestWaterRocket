@@ -5,9 +5,9 @@
 #include <EEPROM.h>
 
 #define INTERVAL 100 // ms
-#define LOG_SIZE 12 //float(4 bytes) x 3 fields -10
+//#define LOG_SIZE 12 //float(4 bytes) x 3 fields -10
 #define IND_PIN 13 // LED or indicator PIN
-#define WAIT_UNTIL_START_RECORDING 3000 // wait after LED is ON
+#define WAIT_UNTIL_START_RECORDING50000 // wait after LED is ON
 
 struct LoggerObject { // 10 fields of float
   float acc[3]; // X,Y,Z
@@ -51,17 +51,17 @@ void setup() {
                   Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 
   bmp_temp->printSensorDetails();
-
-  // EEPROM Clear
-  for (int i = 0 ; i < EEPROM.length() ; i++) {
-    EEPROM.write(i, 0);
-  }
   
   // Empty byte first to indicate data begin
   eeAddress += 1;
   
   digitalWrite(IND_PIN, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(WAIT_UNTIL_START_RECORDING);
+
+  // EEPROM Clear
+  for (int i = 0 ; i < EEPROM.length() ; i++) {
+    EEPROM.write(i, 0);
+  }
 }
 
 void loop() {
@@ -90,7 +90,7 @@ void loop() {
 //              (float) pressure_event.pressure
             };
 
-            if(EEPROM.length() - eeAddress > LOG_SIZE) {
+            if(EEPROM.length() - eeAddress > sizeof(data)) {
               EEPROM.put(eeAddress, data);
 //              Serial.println(data.pressure);
               eeAddress += sizeof(data);

@@ -35,7 +35,7 @@ void loop() {
   LoggerObject data;
   EEPROM.get(eeAddress, data);
 
-  Serial.print("Gyro: ");
+  Serial.print("Acc: ");
   Serial.print("\t");
 //  Serial.print("["+(String)data.acc[0]+","+(String)data.acc[1]+","+(String)data.acc[2]+","+(String)data.gyro[0]+","+(String)data.gyro[1]+","+(String)data.gyro[2]+","+(String)data.mag[0]+","+(String)data.mag[1]+","+(String)data.mag[2]+","+(String)data.pressure+"]");
   Serial.print("["+(String)data.acc[0]+","+(String)data.acc[1]+","+(String)data.acc[2]+"]");
