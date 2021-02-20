@@ -10,7 +10,8 @@
 #include <SD.h>
 #include <ArduinoQueue.h>
 
-#define BMP_INTERVAL 100 // ms
+#define BMP_INTERVAL 21 // ms
+#define QUEUE_INTERVAL 200 //ms
 
 File logFile;
 MPU9250_asukiaaa mySensor;
@@ -19,7 +20,7 @@ Adafruit_BMP280 bmp; // use I2C interface
 Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 
 struct BufferObject {
-    char *keyword[2]; // Can be: aX,aY,aZ,gX,gY,gZ,mX,mY,mZ,p
+    char keyword[2]; // Can be: aX,aY,aZ,gX,gY,gZ,mX,mY,mZ,p
     float value;
 };
 
@@ -42,10 +43,10 @@ void setup() {
 
   /* Default settings from datasheet. */
   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+                  Adafruit_BMP280::SAMPLING_X1,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X1,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X2,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_1); /* Standby time. */
 
   if (!SD.begin(9))
   {
@@ -56,21 +57,30 @@ void setup() {
 
 void loop() {
   if (mySensor.accelUpdate() == 0) {
-    writeToSD("accX", mySensor.accelX());
-    writeToSD("accY", mySensor.accelY());
-    writeToSD("accZ", mySensor.accelZ());
+    BufferObject accx = { "ax", mySensor.accelX()};
+    bufferQueue.enqueue(accx);
+    BufferObject accy = { "ay", mySensor.accelY()};
+    bufferQueue.enqueue(accy);
+    BufferObject accz = { "az", mySensor.accelZ()};
+    bufferQueue.enqueue(accz);
   }
 
   if (mySensor.gyroUpdate() == 0) {
-    writeToSD("gyrX", mySensor.gyroX());
-    writeToSD("gyrY", mySensor.gyroY());
-    writeToSD("gyrZ", mySensor.gyroZ());
+    BufferObject gyrx = { "gx", mySensor.gyroX()};
+    bufferQueue.enqueue(gyrx);
+    BufferObject gyry = { "gy", mySensor.gyroY()};
+    bufferQueue.enqueue(gyry);
+    BufferObject gyrz = { "gz", mySensor.gyroZ()};
+    bufferQueue.enqueue(gyrz);
   }
 
   if (mySensor.magUpdate() == 0) {
-    writeToSD("magX", mySensor.magX());
-    writeToSD("magY", mySensor.magY());
-    writeToSD("magZ", mySensor.magZ());
+    BufferObject magx = { "magX", mySensor.magX()};
+    bufferQueue.enqueue(magx);
+    BufferObject magy = { "magY", mySensor.magY()};
+    bufferQueue.enqueue(magy);
+    BufferObject magz = { "magZ", mySensor.magZ()};
+    bufferQueue.enqueue(magz);
   }
   
   static uint32_t prev_ms = millis();
@@ -79,27 +89,32 @@ void loop() {
       sensors_event_t pressure_event;
       bmp_pressure->getEvent(&pressure_event);
 
-      float pressure = (float) pressure_event.pressure;
-      writeToSD("prs", pressure);
+      BufferObject pressure = { "pr", pressure_event.pressure};
+      bufferQueue.enqueue(pressure);
             
       prev_ms = millis();
   }
-}
 
-// Writing to SD can take up to 200ms
-void writeToSD(String keyword, float value) {
-  // Abrir archivo y escribir valor
-  logFile = SD.open("datalog.txt", FILE_WRITE);
-      
-  if (logFile) { 
+  static uint32_t prev_queue_ms = millis();
+  if (millis() > prev_queue_ms + QUEUE_INTERVAL) {
+    // Abrir archivo y escribir valor
+    logFile = SD.open("datalog.txt", FILE_WRITE);
+
+    if (logFile) { 
+      //TODO: write all Queue data into 
+      /*
       logFile.println(millis()); // ms
       logFile.print(",");
       logFile.print(keyword);
       logFile.print(",");
       logFile.print(value);
+       */
       
       logFile.close();
-  } else {
-    digitalWrite(13, HIGH);
+    } else {
+      digitalWrite(13, HIGH);
+    }
+            
+    prev_queue_ms = millis();
   }
 }
