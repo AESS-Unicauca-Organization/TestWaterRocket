@@ -27,6 +27,7 @@ struct BufferObject {
 ArduinoQueue<BufferObject> bufferQueue(100, 1024);
 
 void setup() {
+  Serial.begin(9600);
   Wire.begin();
   delay(2000);
 
@@ -101,15 +102,16 @@ void loop() {
     logFile = SD.open("datalog.txt", FILE_WRITE);
 
     if (logFile) { 
+      Serial.println("hi");
       //TODO: Should write all queue into a single SDCARD write
       unsigned int n = bufferQueue.itemCount(); 
       for(int i; i < n; i++) {
         BufferObject bufferObj = bufferQueue.dequeue();
-        logFile.println(millis()); // ms
-        logFile.print(",");
-        logFile.print(bufferObj.keyword);
-        logFile.print(",");
-        logFile.print(bufferObj.value);
+        Serial.println(millis()); // ms
+        Serial.print(",");
+        Serial.print(bufferObj.keyword);
+        Serial.print(",");
+        Serial.print(bufferObj.value);
       }
       
       logFile.close();
