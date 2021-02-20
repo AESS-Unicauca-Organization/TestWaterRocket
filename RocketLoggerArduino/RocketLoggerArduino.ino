@@ -101,14 +101,16 @@ void loop() {
     logFile = SD.open("datalog.txt", FILE_WRITE);
 
     if (logFile) { 
-      //TODO: write all Queue data into 
-      /*
-      logFile.println(millis()); // ms
-      logFile.print(",");
-      logFile.print(keyword);
-      logFile.print(",");
-      logFile.print(value);
-       */
+      //TODO: Should write all queue into a single SDCARD write
+      unsigned int n = bufferQueue.itemCount(); 
+      for(int i; i < n; i++) {
+        BufferObject bufferObj = bufferQueue.dequeue();
+        logFile.println(millis()); // ms
+        logFile.print(",");
+        logFile.print(bufferObj.keyword);
+        logFile.print(",");
+        logFile.print(bufferObj.value);
+      }
       
       logFile.close();
     } else {
