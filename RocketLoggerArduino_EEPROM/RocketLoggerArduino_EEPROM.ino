@@ -4,13 +4,14 @@
 #include "MPU9250.h"
 #include <EEPROM.h>
 
-#define INTERVAL 100 // ms
+#define INTERVAL 25 // ms
 //#define LOG_SIZE 12 //float(4 bytes) x 3 fields -10
 #define IND_PIN 13 // LED or indicator PIN
-#define WAIT_UNTIL_START_RECORDING50000 // wait after LED is ON
+#define WAIT_UNTIL_START_RECORDING 3000 // wait after LED is ON
 
 struct LoggerObject { // 10 fields of float
   float acc[3]; // X,Y,Z
+  int timeMS;
 //  float gyro[3];
 //  float mag[3];
 //  float pressure;
@@ -19,9 +20,9 @@ int volatile eeAddress = 0;
 
 MPU9250 mpu;
 
-Adafruit_BMP280 bmp; // use I2C interface
-Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
-Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
+//Adafruit_BMP280 bmp; // use I2C interface
+//Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
+//Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 
 void setup() {
   Serial.begin(9600);
@@ -31,10 +32,10 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   
-  if (!bmp.begin()) {
-    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
-    while (1) delay(10);
-  }
+//  if (!bmp.begin()) {
+//    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+//    while (1) delay(10);
+//  }
 
   if (!mpu.setup(0x68)) {  // change to your own address
     while (1) {
@@ -42,26 +43,27 @@ void setup() {
       delay(5000);
     }
   }
-
+  Serial.println("Ready");
   /* Default settings from datasheet. */
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
-
-  bmp_temp->printSensorDetails();
+//  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+//                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+//                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+//                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+//                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+//
+//  bmp_temp->printSensorDetails();
   
   // Empty byte first to indicate data begin
-  eeAddress += 1;
+  //eeAddress += 1;
   
-  digitalWrite(IND_PIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+
   delay(WAIT_UNTIL_START_RECORDING);
 
   // EEPROM Clear
-  for (int i = 0 ; i < EEPROM.length() ; i++) {
-    EEPROM.write(i, 0);
-  }
+//  for (int i = 0 ; i < EEPROM.length() ; i++) {
+//    EEPROM.write(i, 0);
+//  }
 }
 
 void loop() {
@@ -85,6 +87,7 @@ void loop() {
 
             LoggerObject data = {
               {mpu.getAcc(0), mpu.getAcc(1), mpu.getAcc(2)},
+              millis()
 //              {mpu.getGyro(0), mpu.getGyro(1), mpu.getGyro(2)},
 //              {mpu.getMag(0), mpu.getMag(1), mpu.getMag(2)},
 //              (float) pressure_event.pressure
@@ -95,7 +98,7 @@ void loop() {
 //              Serial.println(data.pressure);
               eeAddress += sizeof(data);
             } else {
-              digitalWrite(IND_PIN, LOW);    // turn the LED off by making the voltage LOW
+              digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
               Serial.println("EEPROOM full. Please use Read Script.");
             }
             
