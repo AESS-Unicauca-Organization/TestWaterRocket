@@ -7,7 +7,6 @@
 #include "Adafruit_BMP280.h"
 #include "MPU9250_asukiaaa.h"
 #include <SD.h>
-#include <ArduinoQueue.h>
 
 #define BMP_INTERVAL 100 // ms
 
@@ -16,13 +15,7 @@ MPU9250_asukiaaa mySensor;
 
 Adafruit_BMP280 bmp; // use I2C interface
 Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
-
-struct BufferObject {
-    char *keyword[2]; // Can be: aX,aY,aZ,gX,gY,gZ,mX,mY,mZ,p
-    float value;
-};
-
-ArduinoQueue<BufferObject> bufferQueue(100, 1024);
+Adafruit_Sensor *bmp_temperature = bmp.getTemperatureSensor();
 
 void setup() {
   Wire.begin();
@@ -53,23 +46,25 @@ void setup() {
   }
 }
 
+volatile float variables[11] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
 void loop() {
   if (mySensor.accelUpdate() == 0) {
-    writeToSD("accX", mySensor.accelX());
-    writeToSD("accY", mySensor.accelY());
-    writeToSD("accZ", mySensor.accelZ());
+    variables[0] = mySensor.accelX();
+    variables[1] = mySensor.accelY();
+    variables[2] = mySensor.accelZ();
   }
 
   if (mySensor.gyroUpdate() == 0) {
-    writeToSD("gyrX", mySensor.gyroX());
-    writeToSD("gyrY", mySensor.gyroY());
-    writeToSD("gyrZ", mySensor.gyroZ());
+    variables[3] = mySensor.gyroX();
+    variables[4] = mySensor.gyroY();
+    variables[5] = mySensor.gyroZ();
   }
 
   if (mySensor.magUpdate() == 0) {
-    writeToSD("magX", mySensor.magX());
-    writeToSD("magY", mySensor.magY());
-    writeToSD("magZ", mySensor.magZ());
+    variables[6] = mySensor.magX();
+    variables[7] = mySensor.magY();
+    variables[8] = mySensor.magZ();
   }
   
   static uint32_t prev_ms = millis();
@@ -79,19 +74,37 @@ void loop() {
       bmp_pressure->getEvent(&pressure_event);
 
       float pressure = (float) pressure_event.pressure;
-      writeToSD("prs", pressure);
+      variables[9] = pressure;
+
+      sensors_event_t temp_event;
+      bmp_temperature->getEvent(&temp_event);
+
+      float temp = (float) temp_event.temperature;
+      variables[10] = temp;
+
+      writeToSD(variables);
             
       prev_ms = millis();
   }
 }
 
 // Writing to SD can take up to 200ms
-void writeToSD(String keyword, float value) {
+void writeToSD(float dict[11]) {
   // Abrir archivo y escribir valor
   logFile = SD.open("datalog.txt", FILE_WRITE);
       
   if (logFile) { 
-      logFile.print((String) millis() + "," + keyword + "," + value + "\n");
+      logFile.print((String) millis() + ",accX," + dict[0] + "\n");
+      logFile.print((String) millis() + ",accY," + dict[1] + "\n");
+      logFile.print((String) millis() + ",accZ," + dict[2] + "\n");
+      logFile.print((String) millis() + ",gyroX," + dict[3] + "\n");
+      logFile.print((String) millis() + ",gyroY," + dict[4] + "\n");
+      logFile.print((String) millis() + ",gyroZ," + dict[5] + "\n");
+      logFile.print((String) millis() + ",magX," + dict[6] + "\n");
+      logFile.print((String) millis() + ",magY," + dict[7] + "\n");
+      logFile.print((String) millis() + ",magZ," + dict[8] + "\n");
+      logFile.print((String) millis() + ",prs," + dict[9] + "\n");
+      logFile.print((String) millis() + ",tmp," + dict[10] + "\n");
  
       logFile.close();
   } else {
